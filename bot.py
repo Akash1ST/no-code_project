@@ -1,47 +1,71 @@
-import telebot
-import random
+import logging
+from aiogram import Bot, Dispatcher, types
+from aiogram.types import WebAppInfo
+from aiogram.dispatcher.filters import Command
+from aiogram.utils import executor
 
-TOKEN = "8583088787:AAHYnyVecgD-C75YUIBEy7Ld6xSmjxTPR7Y"
-bot = telebot.TeleBot(TOKEN)
+# Настройки
+API_TOKEN = "8583088787:AAHYnyVecgD-C75YUIBEy7Ld6xSmjxTPR7Y"
+WEB_APP_URL = "https://akash1st.github.io/no-code_project"
 
-@bot.message_handler(commands=['start'])
-def start(message):
-    bot.send_message(message.chat.id, "Добро пожаловать! Используйте /help для списка команд")
+# Инициализация
+bot = Bot(token=API_TOKEN)
+dp = Dispatcher(bot)
+logging.basicConfig(level=logging.INFO)
 
-@bot.message_handler(commands=['help'])
-def help(message):
-    commands = """
-    📋 Доступные команды:
-    /start - Начать
-    /help - Помощь
-    /random - Случайное число
-    /cat - Случайный факт о котах
-    /roll - Бросить кубик
-    """
-    bot.send_message(message.chat.id, commands)
+# Команда /start с кнопкой Web App
+@dp.message_handler(Command('start'))
+async def cmd_start(message: types.Message):
+    # Создаем клавиатуру с Web App кнопкой
+    keyboard = types.ReplyKeyboardMarkup(resize_keyboard=True)
+    web_app = WebAppInfo(url=WEB_APP_URL)
+    keyboard.add(types.KeyboardButton(
+        text="Открыть приложение 🚀",
+        web_app=web_app
+    ))
+    
+    await message.answer(
+        "👋 Добро пожаловать!\n\n"
+        "Нажмите кнопку ниже, чтобы открыть мини-приложение:",
+        reply_markup=keyboard
+    )
 
-@bot.message_handler(commands=['random'])
-def random_number(message):
-    num = random.randint(1, 100)
-    bot.send_message(message.chat.id, f"🎲 Ваше случайное число: {num}")
+# Обработка данных из Web App
+@dp.message_handler(content_types=['web_app_data'])
+async def handle_web_app_data(message: types.Message):
+    data = message.web_app_data.data
+    # data содержит JSON строку из tg.sendData()
+    
+    await message.answer(f"📱 Получены данные из Web App:\n{data}")
+    
+    # Можно парсить JSON и обрабатывать
+    import json
+    try:
+        data_dict = json.loads(data)
+        await message.answer(f"Действие: {data_dict.get('action')}")
+    except:
+        pass
 
-@bot.message_handler(commands=['cat'])
-def cat_fact(message):
-    facts = [
-        "Кошки спят 70% своей жизни",
-        "У кошек 32 мышцы в каждом ухе",
-        "Кошки могут поворачивать уши на 180 градусов"
-    ]
-    bot.send_message(message.chat.id, random.choice(facts))
+# Инлайн режим с Web App
+@dp.inline_handler()
+async def inline_web_app(query: types.InlineQuery):
+    web_app = WebAppInfo(url=WEB_APP_URL)
+    
+    result = types.InlineQueryResultArticle(
+        id='1',
+        title='Открыть приложение',
+        input_message_content=types.InputTextMessageContent(
+            message_text='Нажмите кнопку ниже, чтобы открыть приложение 👇'
+        ),
+        reply_markup=types.InlineKeyboardMarkup().add(
+            types.InlineKeyboardButton(
+                text="Запустить приложение",
+                web_app=web_app
+            )
+        )
+    )
+    
+    await query.answer([result], cache_time=1)
 
-@bot.message_handler(commands=['roll'])
-def dice(message):
-    dice = random.randint(1, 6)
-    bot.send_message(message.chat.id, f"🎯 Выпало: {dice}")
-
-@bot.message_handler(func=lambda m: "привет" in m.text.lower())
-def hello(message):
-    bot.reply_to(message, "И тебе привет! 😊")
-
-print("✅ Бот запущен и работает...")
-bot.polling(none_stop=True)
+if __name__ == '__main__':
+    executor.start_polling(dp, skip_updates=True)
