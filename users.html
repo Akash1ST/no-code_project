@@ -26,13 +26,29 @@ body {
     box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
     width: 100%;
     max-width: 120px;
-    padding: 900px;
+    padding: 70%;
+}
+@media (max-width: 768px) {
+    .container {
+        width: 100%;
+        padding: 10px;
+    }
+}
+
+/* Для телефонов (ширина до 480px) */
+@media (max-width: 480px) {
+    .menu {
+        flex-direction: column;
+    }
+    .button {
+        width: 100%;
+    }
 }
     </style>
 </head>
 <body>
     <div class="main">
-        
+         
     </div>
 </body>
 </html>
