@@ -54,14 +54,68 @@
     <div class="add-task-btn" id="add-task-btn">
       <i class="fas fa-plus"></i>
     </div>
+
+    <!-- Модальное окно для редактирования задачи -->
+    <div class="modal-overlay" id="edit-task-modal">
+      <div class="modal">
+        <div class="modal-header">
+          <h3 class="modal-title">Редактировать задачу</h3>
+          <button class="modal-close" id="close-edit-modal">&times;</button>
+        </div>
+        <div class="modal-body">
+          <form id="edit-task-form">
+            <div class="form-group">
+              <label class="form-label" for="edit-title">Название задачи</label>
+              <input type="text" class="form-input" id="edit-title" required />
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="edit-description">Описание</label>
+              <textarea
+                class="form-textarea"
+                id="edit-description"
+                rows="4"
+              ></textarea>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="edit-category">Категория</label>
+              <select class="form-select" id="edit-category">
+                <option value="Работа">Работа</option>
+                <option value="Дом">Дом</option>
+                <option value="Обучение">Обучение</option>
+                <option value="Личное">Личное</option>
+                <option value="Здоровье">Здоровье</option>
+                <option value="Финансы">Финансы</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="edit-date">Срок выполнения</label>
+              <input type="date" class="form-input" id="edit-date" required />
+            </div>
+
+            <input type="hidden" id="edit-task-id" />
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" id="cancel-edit">
+            Отмена
+          </button>
+          <button type="button" class="btn btn-primary" id="save-task">
+            Сохранить
+          </button>
+        </div>
+      </div>
+    </div>
+
     <script>
       // Данные задач
       let tasks = [
         {
           id: 1,
           title: "Ремонт конвейра",
-          description:
-            "Проверить систему конверов разлива-сборки тары",
+          description: "Проверить систему конверов разлива-сборки тары",
           category: "СРОЧНО",
           markers: [
             { id: 1, text: "Проверка соединений", completed: true },
@@ -113,90 +167,108 @@
         document
           .getElementById("add-task-btn")
           .addEventListener("click", addNewTask);
+
+        // Обработчики модального окна
+        const editModal = document.getElementById("edit-task-modal");
+        const closeEditModalBtn = document.getElementById("close-edit-modal");
+        const cancelEditBtn = document.getElementById("cancel-edit");
+        const saveTaskBtn = document.getElementById("save-task");
+
+        // Закрытие модального окна
+        closeEditModalBtn.addEventListener("click", () => {
+          editModal.classList.remove("active");
+        });
+
+        cancelEditBtn.addEventListener("click", () => {
+          editModal.classList.remove("active");
+        });
+
+        // Клик вне модального окна для закрытия
+        editModal.addEventListener("click", (e) => {
+          if (e.target === editModal) {
+            editModal.classList.remove("active");
+          }
+        });
+
+        // Сохранение задачи
+        saveTaskBtn.addEventListener("click", saveTask);
       });
-
-      // Функция для отрисовки задач
-      function renderTasks() {
-        const tasksContainer = document.getElementById("tasks-container");
-        const completedContainer = document.getElementById(
-          "completed-tasks-container"
-        );
-
-        // Очищаем контейнеры
-        tasksContainer.innerHTML = "";
-        completedContainer.innerHTML = "";
-
-        // Разделяем задачи на активные и завершенные
-        const activeTasks = tasks.filter((task) => !task.completed);
-        const completedTasks = tasks.filter((task) => task.completed);
-
-        // Отображаем активные задачи
-        if (activeTasks.length > 0) {
-          activeTasks.forEach((task) => {
-            tasksContainer.appendChild(createTaskElement(task));
-          });
-        } else {
-          tasksContainer.innerHTML = `
+      
+       // Функция для отрисовки задач
+        function renderTasks() {
+            const tasksContainer = document.getElementById('tasks-container');
+            const completedContainer = document.getElementById('completed-tasks-container');
+            
+            // Очищаем контейнеры
+            tasksContainer.innerHTML = '';
+            completedContainer.innerHTML = '';
+            
+            // Разделяем задачи на активные и завершенные
+            const activeTasks = tasks.filter(task => !task.completed);
+            const completedTasks = tasks.filter(task => task.completed);
+            
+            // Отображаем активные задачи
+            if (activeTasks.length > 0) {
+                activeTasks.forEach(task => {
+                    tasksContainer.appendChild(createTaskElement(task));
+                });
+            } else {
+                tasksContainer.innerHTML = `
                     <div class="empty-state">
                         <i class="fas fa-clipboard-list"></i>
                         <p>Нет активных задач. Добавьте новую!</p>
                     </div>
                 `;
-        }
-
-        // Отображаем завершенные задачи
-        if (completedTasks.length > 0) {
-          completedTasks.forEach((task) => {
-            completedContainer.appendChild(createTaskElement(task));
-          });
-        } else {
-          completedContainer.innerHTML = `
+            }
+            
+            // Отображаем завершенные задачи
+            if (completedTasks.length > 0) {
+                completedTasks.forEach(task => {
+                    completedContainer.appendChild(createTaskElement(task));
+                });
+            } else {
+                completedContainer.innerHTML = `
                     <div class="empty-state">
                         <i class="fas fa-check-circle"></i>
                         <p>Нет завершенных задач</p>
                     </div>
                 `;
-        }
-      }
-
-      // Создание элемента задачи
-      function createTaskElement(task) {
-        const taskElement = document.createElement("div");
-        taskElement.className = "task-block";
-        taskElement.dataset.id = task.id;
-
-        // Расчет прогресса
-        const completedMarkers = task.markers.filter(
-          (marker) => marker.completed
-        ).length;
-        const totalMarkers = task.markers.length;
-        const progressPercent =
-          totalMarkers > 0
-            ? Math.round((completedMarkers / totalMarkers) * 100)
-            : 0;
-
-        // Определение цвета прогресс-бара
-        let progressBarClass = "low-progress";
-        if (progressPercent >= 100) {
-          progressBarClass = "complete-progress";
-        } else if (progressPercent >= 70) {
-          progressBarClass = "high-progress";
-        } else if (progressPercent >= 40) {
-          progressBarClass = "medium-progress";
+            }
         }
 
-        // Форматирование даты
-        const formattedDate = new Date(task.date).toLocaleDateString("ru-RU", {
-          day: "numeric",
-          month: "long",
-        });
-
-        taskElement.innerHTML = `
+        // Создание элемента задачи
+        function createTaskElement(task) {
+            const taskElement = document.createElement('div');
+            taskElement.className = 'task-block';
+            taskElement.dataset.id = task.id;
+            
+            // Расчет прогресса
+            const completedMarkers = task.markers.filter(marker => marker.completed).length;
+            const totalMarkers = task.markers.length;
+            const progressPercent = totalMarkers > 0 ? Math.round((completedMarkers / totalMarkers) * 100) : 0;
+            
+            // Определение цвета прогресс-бара
+            let progressBarClass = 'low-progress';
+            if (progressPercent >= 100) {
+                progressBarClass = 'complete-progress';
+            } else if (progressPercent >= 70) {
+                progressBarClass = 'high-progress';
+            } else if (progressPercent >= 40) {
+                progressBarClass = 'medium-progress';
+            }
+            
+            // Форматирование даты
+            const formattedDate = new Date(task.date).toLocaleDateString('ru-RU', {
+                day: 'numeric',
+                month: 'long'
+            });
+            
+            taskElement.innerHTML = `
                 <div class="task-header">
-                    <div class="task-title">${task.title}</div>
-                    <div class="task-category">${task.category}</div>
+                    <div class="task-title">${escapeHtml(task.title)}</div>
+                    <div class="task-category">${escapeHtml(task.category)}</div>
                 </div>
-                <div class="task-description">${task.description}</div>
+                <div class="task-description">${escapeHtml(task.description)}</div>
                 <div class="task-date">Срок: ${formattedDate}</div>
                 <div class="task-progress">
                     <div class="progress-bar">
@@ -205,151 +277,224 @@
                     <div class="progress-text">${progressPercent}%</div>
                 </div>
                 <div class="task-markers" id="markers-${task.id}">
-                    ${task.markers
-                      .map(
-                        (marker) => `
-                        <div class="marker ${
-                          marker.completed ? "complete" : "incomplete"
-                        }" 
+                    ${task.markers.map(marker => `
+                        <div class="marker ${marker.completed ? 'complete' : 'incomplete'}" 
                              data-marker-id="${marker.id}" 
                              data-task-id="${task.id}">
                             <span class="marker-icon">
-                                ${
-                                  marker.completed
-                                    ? '<i class="fas fa-check-circle"></i>'
-                                    : '<i class="far fa-circle"></i>'
-                                }
+                                ${marker.completed ? '<i class="fas fa-check-circle"></i>' : '<i class="far fa-circle"></i>'}
                             </span>
-                            <span class="marker-text">${marker.text}</span>
+                            <span class="marker-text">${escapeHtml(marker.text)}</span>
                         </div>
-                    `
-                      )
-                      .join("")}
+                    `).join('')}
                 </div>
                 <div class="task-actions">
-                    <div class="action-btn edit-btn" onclick="toggleTaskComplete(${
-                      task.id
-                    })">
-                        <i class="fas ${
-                          task.completed ? "fa-undo" : "fa-check"
-                        }"></i>
-                        <span>${task.completed ? "Вернуть" : "Завершить"}</span>
+                    <div class="action-btn edit-btn" onclick="editTask(${task.id})">
+                        <i class="fas fa-edit"></i>
+                        <span>Редактировать</span>
                     </div>
-                    <div class="action-btn delete-btn" onclick="deleteTask(${
-                      task.id
-                    })">
+                    <div class="action-btn complete-btn" onclick="toggleTaskComplete(${task.id})">
+                        <i class="fas ${task.completed ? 'fa-undo' : 'fa-check'}"></i>
+                        <span>${task.completed ? 'Вернуть' : 'Завершить'}</span>
+                    </div>
+                    <div class="action-btn delete-btn" onclick="deleteTask(${task.id})">
                         <i class="fas fa-trash"></i>
                         <span>Удалить</span>
                     </div>
                 </div>
             `;
-
-        // Добавляем обработчики для маркеров
-        const markers = taskElement.querySelectorAll(".marker");
-        markers.forEach((marker) => {
-          marker.addEventListener("click", function () {
-            const taskId = parseInt(this.dataset.taskId);
-            const markerId = parseInt(this.dataset.markerId);
-            toggleMarker(taskId, markerId);
-          });
-        });
-
-        return taskElement;
-      }
-
-      // Переключение состояния маркера
-      function toggleMarker(taskId, markerId) {
-        const task = tasks.find((t) => t.id === taskId);
-        if (!task) return;
-
-        const marker = task.markers.find((m) => m.id === markerId);
-        if (marker) {
-          marker.completed = !marker.completed;
-          renderTasks();
-          updateStats();
+            
+            // Добавляем обработчики для маркеров
+            const markers = taskElement.querySelectorAll('.marker');
+            markers.forEach(marker => {
+                marker.addEventListener('click', function() {
+                    const taskId = parseInt(this.dataset.taskId);
+                    const markerId = parseInt(this.dataset.markerId);
+                    toggleMarker(taskId, markerId);
+                });
+            });
+            
+            return taskElement;
         }
-      }
 
-      // Переключение состояния задачи (выполнена/не выполнена)
-      function toggleTaskComplete(taskId) {
-        const task = tasks.find((t) => t.id === taskId);
-        if (task) {
-          task.completed = !task.completed;
-          renderTasks();
-          updateStats();
+        // Экранирование HTML для безопасности
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
         }
-      }
 
-      // Удаление задачи
-      function deleteTask(taskId) {
-        if (confirm("Вы уверены, что хотите удалить эту задачу?")) {
-          tasks = tasks.filter((t) => t.id !== taskId);
-          renderTasks();
-          updateStats();
+        // Переключение состояния маркера
+        function toggleMarker(taskId, markerId) {
+            const task = tasks.find(t => t.id === taskId);
+            if (!task) return;
+            
+            const marker = task.markers.find(m => m.id === markerId);
+            if (marker) {
+                marker.completed = !marker.completed;
+                renderTasks();
+                updateStats();
+            }
         }
-      }
 
-      // Обновление статистики
-      function updateStats() {
-        const totalTasks = tasks.length;
-        const completedTasks = tasks.filter((task) => task.completed).length;
-        const totalMarkers = tasks.reduce(
-          (sum, task) => sum + task.markers.length,
-          0
-        );
-        const completedMarkers = tasks.reduce((sum, task) => {
-          return sum + task.markers.filter((marker) => marker.completed).length;
-        }, 0);
-
-        const progressPercent =
-          totalMarkers > 0
-            ? Math.round((completedMarkers / totalMarkers) * 100)
-            : 0;
-
-        document.getElementById("total-tasks").textContent = totalTasks;
-        document.getElementById("completed-tasks").textContent = completedTasks;
-        document.getElementById(
-          "progress-percent"
-        ).textContent = `${progressPercent}%`;
-      }
-
-      // Добавление новой задачи
-      function addNewTask() {
-        const newTaskId =
-          tasks.length > 0 ? Math.max(...tasks.map((t) => t.id)) + 1 : 1;
-        const newTask = {
-          id: newTaskId,
-          title: "Новая задача",
-          description: "Описание новой задачи",
-          category: "Личное",
-          markers: [
-            { id: 1, text: "Первый шаг", completed: false },
-            { id: 2, text: "Второй шаг", completed: false },
-          ],
-          date: new Date().toISOString().split("T")[0],
-          completed: false,
-        };
-
-        tasks.unshift(newTask);
-        renderTasks();
-        updateStats();
-
-        // Прокручиваем к новой задаче
-        setTimeout(() => {
-          const taskElement = document.querySelector(
-            `[data-id="${newTaskId}"]`
-          );
-          if (taskElement) {
-            taskElement.scrollIntoView({ behavior: "smooth", block: "center" });
-
-            // Добавляем анимацию выделения
-            taskElement.style.boxShadow = "0 0 0 3px rgba(74, 111, 165, 0.5)";
+        // Редактирование задачи
+        function editTask(taskId) {
+            const task = tasks.find(t => t.id === taskId);
+            if (!task) return;
+            
+            // Заполняем форму данными задачи
+            document.getElementById('edit-title').value = task.title;
+            document.getElementById('edit-description').value = task.description;
+            document.getElementById('edit-category').value = task.category;
+            document.getElementById('edit-date').value = task.date;
+            document.getElementById('edit-task-id').value = taskId;
+            
+            // Открываем модальное окно
+            const editModal = document.getElementById('edit-task-modal');
+            editModal.classList.add('active');
+            
+            // Фокус на поле названия
             setTimeout(() => {
-              taskElement.style.boxShadow = "";
-            }, 2000);
-          }
-        }, 100);
-      }
+                document.getElementById('edit-title').focus();
+            }, 300);
+        }
+
+        // Сохранение задачи после редактирования
+        function saveTask() {
+            const taskId = parseInt(document.getElementById('edit-task-id').value);
+            const task = tasks.find(t => t.id === taskId);
+            
+            if (task) {
+                // Обновляем данные задачи
+                task.title = document.getElementById('edit-title').value.trim();
+                task.description = document.getElementById('edit-description').value.trim();
+                task.category = document.getElementById('edit-category').value;
+                task.date = document.getElementById('edit-date').value;
+                
+                // Закрываем модальное окно
+                document.getElementById('edit-task-modal').classList.remove('active');
+                
+                // Обновляем отображение
+                renderTasks();
+                updateStats();
+                
+                // Показываем уведомление
+                showNotification('Задача успешно обновлена!');
+            }
+        }
+
+        // Переключение состояния задачи (выполнена/не выполнена)
+        function toggleTaskComplete(taskId) {
+            const task = tasks.find(t => t.id === taskId);
+            if (task) {
+                task.completed = !task.completed;
+                renderTasks();
+                updateStats();
+                
+                const message = task.completed ? 'Задача завершена!' : 'Задача возвращена в активные';
+                showNotification(message);
+            }
+        }
+
+        // Удаление задачи
+        function deleteTask(taskId) {
+            if (confirm('Вы уверены, что хотите удалить эту задачу?')) {
+                tasks = tasks.filter(t => t.id !== taskId);
+                renderTasks();
+                updateStats();
+                showNotification('Задача удалена');
+            }
+        }
+
+        // Обновление статистики
+        function updateStats() {
+            const totalTasks = tasks.length;
+            const completedTasks = tasks.filter(task => task.completed).length;
+            const totalMarkers = tasks.reduce((sum, task) => sum + task.markers.length, 0);
+            const completedMarkers = tasks.reduce((sum, task) => {
+                return sum + task.markers.filter(marker => marker.completed).length;
+            }, 0);
+            
+            const progressPercent = totalMarkers > 0 ? Math.round((completedMarkers / totalMarkers) * 100) : 0;
+            
+            document.getElementById('total-tasks').textContent = totalTasks;
+            document.getElementById('completed-tasks').textContent = completedTasks;
+            document.getElementById('progress-percent').textContent = `${progressPercent}%`;
+        }
+
+        // Добавление новой задачи
+        function addNewTask() {
+            const newTaskId = tasks.length > 0 ? Math.max(...tasks.map(t => t.id)) + 1 : 1;
+            const today = new Date();
+            const nextWeek = new Date(today);
+            nextWeek.setDate(today.getDate() + 7);
+            
+            const newTask = {
+                id: newTaskId,
+                title: "Новая задача",
+                description: "Опишите, что нужно сделать...",
+                category: "Личное",
+                markers: [
+                    { id: 1, text: "Первый шаг", completed: false },
+                    { id: 2, text: "Второй шаг", completed: false }
+                ],
+                date: nextWeek.toISOString().split('T')[0],
+                completed: false
+            };
+            
+            tasks.unshift(newTask);
+            renderTasks();
+            updateStats();
+            
+            // Открываем модальное окно для редактирования новой задачи
+            setTimeout(() => {
+                editTask(newTaskId);
+            }, 300);
+        }
+
+        // Временное уведомление
+        function showNotification(message) {
+            // Удаляем предыдущее уведомление, если есть
+            const existingNotification = document.querySelector('.notification');
+            if (existingNotification) {
+                existingNotification.remove();
+            }
+            
+            // Создаем новое уведомление
+            const notification = document.createElement('div');
+            notification.className = 'notification';
+            notification.textContent = message;
+            notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                left: 50%;
+                transform: translateX(-50%);
+                background-color: #4a6fa5;
+                color: white;
+                padding: 12px 20px;
+                border-radius: 8px;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+                z-index: 1001;
+                font-weight: 500;
+                transition: opacity 0.3s;
+                opacity: 0;
+            `;
+            
+            document.body.appendChild(notification);
+            
+            // Показываем уведомление
+            setTimeout(() => {
+                notification.style.opacity = '1';
+            }, 10);
+            
+            // Скрываем через 3 секунды
+            setTimeout(() => {
+                notification.style.opacity = '0';
+                setTimeout(() => {
+                    notification.remove();
+                }, 300);
+            }, 3000);
+        }
     </script>
   </body>
 </html>
