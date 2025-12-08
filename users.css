@@ -1,0 +1,277 @@
+* {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #f5f7fa;
+            color: #333;
+            padding: 15px;
+            line-height: 1.5;
+            min-height: 100vh;
+            padding-bottom: 80px;
+        }
+        
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 25px;
+            padding-top: 10px;
+        }
+        
+        h1 {
+            color: #4a6fa5;
+            font-size: 28px;
+            margin-bottom: 8px;
+        }
+        
+        .subtitle {
+            color: #777;
+            font-size: 16px;
+        }
+        
+        .stats {
+            display: flex;
+            justify-content: space-around;
+            background: white;
+            border-radius: 15px;
+            padding: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        }
+        
+        .stat-item {
+            text-align: center;
+        }
+        
+        .stat-number {
+            font-size: 24px;
+            font-weight: bold;
+            color: #4a6fa5;
+        }
+        
+        .stat-label {
+            font-size: 14px;
+            color: #777;
+            margin-top: 5px;
+        }
+        
+        .section-title {
+            font-size: 20px;
+            margin: 20px 0 15px;
+            color: #4a6fa5;
+            display: flex;
+            align-items: center;
+        }
+        
+        .section-title i {
+            margin-right: 10px;
+        }
+        
+        .task-block {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 15px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .task-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .task-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+        }
+        
+        .task-category {
+            font-size: 14px;
+            background: #eef2f9;
+            color: #4a6fa5;
+            padding: 4px 12px;
+            border-radius: 20px;
+        }
+        
+        .task-description {
+            color: #666;
+            margin-bottom: 20px;
+            font-size: 15px;
+        }
+        
+        .task-progress {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .progress-bar {
+            flex-grow: 1;
+            height: 8px;
+            background-color: #e0e0e0;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-right: 15px;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            border-radius: 4px;
+            transition: width 0.3s ease;
+        }
+        
+        .progress-text {
+            font-size: 14px;
+            font-weight: 600;
+            color: #4a6fa5;
+            min-width: 40px;
+        }
+        
+        .task-markers {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        
+        .marker {
+            display: flex;
+            align-items: center;
+            padding: 8px 12px;
+            border-radius: 20px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            user-select: none;
+        }
+        
+        .marker:hover {
+            transform: translateY(-2px);
+        }
+        
+        .marker.incomplete {
+            background-color: #f0f0f0;
+            color: #888;
+        }
+        
+        .marker.complete {
+            background-color: #e8f5e9;
+            color: #2e7d32;
+        }
+        
+        .marker-icon {
+            margin-right: 8px;
+            font-size: 16px;
+        }
+        
+        .task-actions {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+            padding-top: 15px;
+            border-top: 1px solid #eee;
+        }
+        
+        .action-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .edit-btn {
+            background-color: #e3f2fd;
+            color: #1565c0;
+        }
+        
+        .delete-btn {
+            background-color: #ffebee;
+            color: #c62828;
+        }
+        
+        .add-task-btn {
+            position: fixed;
+            bottom: 30px;
+            right: 20px;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background-color: #4a6fa5;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            box-shadow: 0 6px 20px rgba(74, 111, 165, 0.4);
+            cursor: pointer;
+            z-index: 100;
+            transition: all 0.3s ease;
+        }
+        
+        .add-task-btn:hover {
+            background-color: #3a5a8c;
+            transform: scale(1.05);
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: #888;
+        }
+        
+        .empty-state i {
+            font-size: 50px;
+            margin-bottom: 15px;
+            color: #ccc;
+        }
+        
+        .task-date {
+            font-size: 13px;
+            color: #aaa;
+            margin-top: 5px;
+        }
+        
+        /* Цвета для прогресс-баров */
+        .low-progress { background-color: #ffcdd2; }
+        .medium-progress { background-color: #fff9c4; }
+        .high-progress { background-color: #c8e6c9; }
+        .complete-progress { background-color: #4caf50; }
+        
+        /* Адаптивность */
+        @media (max-width: 480px) {
+            body {
+                padding: 10px;
+            }
+            
+            h1 {
+                font-size: 24px;
+            }
+            
+            .task-block {
+                padding: 15px;
+            }
+            
+            .task-title {
+                font-size: 16px;
+            }
+            
+            .marker {
+                padding: 6px 10px;
+                font-size: 13px;
+            }
+        }

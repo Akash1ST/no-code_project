@@ -50,6 +50,10 @@
         <!-- Завершенные задачи будут добавляться сюда -->
       </div>
     </div>
+
+    <div class="add-task-btn" id="add-task-btn">
+      <i class="fas fa-plus"></i>
+    </div>
     <script>
       // Данные задач
       let tasks = [
@@ -231,6 +235,13 @@
                         }"></i>
                         <span>${task.completed ? "Вернуть" : "Завершить"}</span>
                     </div>
+                    <div class="action-btn delete-btn" onclick="deleteTask(${
+                      task.id
+                    })">
+                        <i class="fas fa-trash"></i>
+                        <span>Удалить</span>
+                    </div>
+                </div>
             `;
 
         // Добавляем обработчики для маркеров
@@ -264,6 +275,15 @@
         const task = tasks.find((t) => t.id === taskId);
         if (task) {
           task.completed = !task.completed;
+          renderTasks();
+          updateStats();
+        }
+      }
+
+      // Удаление задачи
+      function deleteTask(taskId) {
+        if (confirm("Вы уверены, что хотите удалить эту задачу?")) {
+          tasks = tasks.filter((t) => t.id !== taskId);
           renderTasks();
           updateStats();
         }
