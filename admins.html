@@ -17,6 +17,7 @@
     <div class="container">
       <header>
         <h1>Задачи</h1>
+        <p class="subtitle">Управляйте выполнением задач с помощью маркеров</p>
       </header>
 
       <div class="stats">
@@ -99,7 +100,44 @@
             Отмена
           </button>
           <button type="button" class="btn btn-primary" id="save-task">
-            Сохранить
+            Сохранить задачу
+          </button>
+          <button
+            type="button"
+            class="btn btn-secondary"
+            id="manage-markers-btn"
+          >
+            Управлять шагами
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Модальное окно для управления маркерами/шагами -->
+    <div class="modal-overlay" id="edit-markers-modal">
+      <div class="modal">
+        <div class="modal-header">
+          <h3 class="modal-title">Управление шагами задачи</h3>
+          <button class="modal-close" id="close-markers-modal">&times;</button>
+        </div>
+        <div class="modal-body">
+          <h4
+            id="markers-task-title"
+            style="margin-bottom: 15px; color: #4a6fa5"
+          ></h4>
+          <div class="markers-list" id="markers-list-container">
+            <!-- Список маркеров будет добавляться здесь -->
+          </div>
+          <button type="button" class="add-marker-btn" id="add-marker-btn">
+            <i class="fas fa-plus"></i> Добавить шаг
+          </button>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" id="cancel-markers">
+            Назад к задаче
+          </button>
+          <button type="button" class="btn btn-primary" id="save-markers">
+            Сохранить шаги
           </button>
         </div>
       </div>
@@ -154,43 +192,81 @@
         },
       ];
 
+      // Текущая редактируемая задача
+      let currentEditingTaskId = null;
+      let markersBackup = [];
+
       // Инициализация при загрузке страницы
-      document.addEventListener("DOMContentLoaded", function () {
-        renderTasks();
-        updateStats();
-
-        // Обработчик кнопки добавления задачи
-        document
-          .getElementById("add-task-btn")
-          .addEventListener("click", addNewTask);
-
-        // Обработчики модального окна
-        const editModal = document.getElementById("edit-task-modal");
-        const closeEditModalBtn = document.getElementById("close-edit-modal");
-        const cancelEditBtn = document.getElementById("cancel-edit");
-        const saveTaskBtn = document.getElementById("save-task");
-
-        // Закрытие модального окна
-        closeEditModalBtn.addEventListener("click", () => {
-          editModal.classList.remove("active");
+        document.addEventListener('DOMContentLoaded', function() {
+            renderTasks();
+            updateStats();
+            
+            // Обработчик кнопки добавления задачи
+            document.getElementById('add-task-btn').addEventListener('click', addNewTask);
+            
+            // Обработчики модального окна редактирования задачи
+            const editModal = document.getElementById('edit-task-modal');
+            const closeEditModalBtn = document.getElementById('close-edit-modal');
+            const cancelEditBtn = document.getElementById('cancel-edit');
+            const saveTaskBtn = document.getElementById('save-task');
+            const manageMarkersBtn = document.getElementById('manage-markers-btn');
+            
+            // Обработчики модального окна управления маркерами
+            const markersModal = document.getElementById('edit-markers-modal');
+            const closeMarkersModalBtn = document.getElementById('close-markers-modal');
+            const cancelMarkersBtn = document.getElementById('cancel-markers');
+            const saveMarkersBtn = document.getElementById('save-markers');
+            const addMarkerBtn = document.getElementById('add-marker-btn');
+            
+            // Закрытие модальных окон
+            closeEditModalBtn.addEventListener('click', () => {
+                editModal.classList.remove('active');
+            });
+            
+            cancelEditBtn.addEventListener('click', () => {
+                editModal.classList.remove('active');
+            });
+            
+            closeMarkersModalBtn.addEventListener('click', () => {
+                markersModal.classList.remove('active');
+            });
+            
+            cancelMarkersBtn.addEventListener('click', () => {
+                markersModal.classList.remove('active');
+                editModal.classList.add('active');
+            });
+            
+            // Клик вне модального окна для закрытия
+            editModal.addEventListener('click', (e) => {
+                if (e.target === editModal) {
+                    editModal.classList.remove('active');
+                }
+            });
+            
+            markersModal.addEventListener('click', (e) => {
+                if (e.target === markersModal) {
+                    markersModal.classList.remove('active');
+                    editModal.classList.add('active');
+                }
+            });
+            
+            // Кнопка управления маркерами
+            manageMarkersBtn.addEventListener('click', () => {
+                editModal.classList.remove('active');
+                openMarkersModal(currentEditingTaskId);
+            });
+            
+            // Сохранение задачи
+            saveTaskBtn.addEventListener('click', saveTask);
+            
+            // Сохранение маркеров
+            saveMarkersBtn.addEventListener('click', saveMarkers);
+            
+            // Добавление нового маркера
+            addMarkerBtn.addEventListener('click', addNewMarker);
         });
 
-        cancelEditBtn.addEventListener("click", () => {
-          editModal.classList.remove("active");
-        });
-
-        // Клик вне модального окна для закрытия
-        editModal.addEventListener("click", (e) => {
-          if (e.target === editModal) {
-            editModal.classList.remove("active");
-          }
-        });
-
-        // Сохранение задачи
-        saveTaskBtn.addEventListener("click", saveTask);
-      });
-      
-       // Функция для отрисовки задач
+        // Функция для отрисовки задач
         function renderTasks() {
             const tasksContainer = document.getElementById('tasks-container');
             const completedContainer = document.getElementById('completed-tasks-container');
@@ -281,6 +357,9 @@
                                 ${marker.completed ? '<i class="fas fa-check-circle"></i>' : '<i class="far fa-circle"></i>'}
                             </span>
                             <span class="marker-text">${escapeHtml(marker.text)}</span>
+                            <button class="marker-edit-btn" onclick="event.stopPropagation(); editMarker(${task.id}, ${marker.id})">
+                                <i class="fas fa-edit"></i>
+                            </button>
                         </div>
                     `).join('')}
                 </div>
@@ -288,6 +367,10 @@
                     <div class="action-btn edit-btn" onclick="editTask(${task.id})">
                         <i class="fas fa-edit"></i>
                         <span>Редактировать</span>
+                    </div>
+                    <div class="action-btn markers-btn" onclick="openMarkersModal(${task.id})">
+                        <i class="fas fa-list-check"></i>
+                        <span>Шаги</span>
                     </div>
                     <div class="action-btn complete-btn" onclick="toggleTaskComplete(${task.id})">
                         <i class="fas ${task.completed ? 'fa-undo' : 'fa-check'}"></i>
@@ -303,10 +386,13 @@
             // Добавляем обработчики для маркеров
             const markers = taskElement.querySelectorAll('.marker');
             markers.forEach(marker => {
-                marker.addEventListener('click', function() {
-                    const taskId = parseInt(this.dataset.taskId);
-                    const markerId = parseInt(this.dataset.markerId);
-                    toggleMarker(taskId, markerId);
+                marker.addEventListener('click', function(e) {
+                    // Игнорируем клик по кнопке редактирования
+                    if (!e.target.closest('.marker-edit-btn')) {
+                        const taskId = parseInt(this.dataset.taskId);
+                        const markerId = parseInt(this.dataset.markerId);
+                        toggleMarker(taskId, markerId);
+                    }
                 });
             });
             
@@ -338,6 +424,8 @@
             const task = tasks.find(t => t.id === taskId);
             if (!task) return;
             
+            currentEditingTaskId = taskId;
+            
             // Заполняем форму данными задачи
             document.getElementById('edit-title').value = task.title;
             document.getElementById('edit-description').value = task.description;
@@ -353,6 +441,127 @@
             setTimeout(() => {
                 document.getElementById('edit-title').focus();
             }, 300);
+        }
+
+        // Открытие модального окна для управления маркерами
+        function openMarkersModal(taskId) {
+            const task = tasks.find(t => t.id === taskId);
+            if (!task) return;
+            
+            currentEditingTaskId = taskId;
+            
+            // Сохраняем текущие маркеры для возможного отката
+            markersBackup = JSON.parse(JSON.stringify(task.markers));
+            
+            // Устанавливаем заголовок
+            document.getElementById('markers-task-title').textContent = `Шаги задачи: "${task.title}"`;
+            
+            // Отрисовываем список маркеров
+            renderMarkersList(task.markers);
+            
+            // Открываем модальное окно
+            const markersModal = document.getElementById('edit-markers-modal');
+            markersModal.classList.add('active');
+        }
+
+        // Отрисовка списка маркеров в модальном окне
+        function renderMarkersList(markers) {
+            const container = document.getElementById('markers-list-container');
+            container.innerHTML = '';
+            
+            if (markers.length === 0) {
+                container.innerHTML = '<p style="text-align: center; color: #888; padding: 20px;">Нет шагов. Добавьте первый шаг!</p>';
+                return;
+            }
+            
+            markers.forEach((marker, index) => {
+                const markerItem = document.createElement('div');
+                markerItem.className = 'marker-item';
+                markerItem.dataset.markerId = marker.id;
+                
+                markerItem.innerHTML = `
+                    <input type="text" class="marker-item-input" value="${escapeHtml(marker.text)}" 
+                           data-marker-id="${marker.id}" placeholder="Текст шага">
+                    <div class="marker-item-actions">
+                        <button class="marker-action-btn marker-check-btn" title="Отметить выполненным" onclick="toggleMarkerInModal(${marker.id})">
+                            <i class="fas ${marker.completed ? 'fa-check-circle' : 'far fa-circle'}"></i>
+                        </button>
+                        <button class="marker-action-btn marker-remove-btn" title="Удалить шаг" onclick="removeMarker(${marker.id})">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                `;
+                
+                // Обработчик изменения текста маркера
+                const input = markerItem.querySelector('.marker-item-input');
+                input.addEventListener('input', function() {
+                    const markerId = parseInt(this.dataset.markerId);
+                    updateMarkerText(markerId, this.value);
+                });
+                
+                container.appendChild(markerItem);
+            });
+        }
+
+        // Обновление текста маркера
+        function updateMarkerText(markerId, newText) {
+            const task = tasks.find(t => t.id === currentEditingTaskId);
+            if (!task) return;
+            
+            const marker = task.markers.find(m => m.id === markerId);
+            if (marker) {
+                marker.text = newText.trim();
+            }
+        }
+
+        // Переключение состояния маркера в модальном окне
+        function toggleMarkerInModal(markerId) {
+            const task = tasks.find(t => t.id === currentEditingTaskId);
+            if (!task) return;
+            
+            const marker = task.markers.find(m => m.id === markerId);
+            if (marker) {
+                marker.completed = !marker.completed;
+                renderMarkersList(task.markers);
+            }
+        }
+
+        // Удаление маркера
+        function removeMarker(markerId) {
+            const task = tasks.find(t => t.id === currentEditingTaskId);
+            if (!task) return;
+            
+            task.markers = task.markers.filter(m => m.id !== markerId);
+            renderMarkersList(task.markers);
+        }
+
+        // Добавление нового маркера
+        function addNewMarker() {
+            const task = tasks.find(t => t.id === currentEditingTaskId);
+            if (!task) return;
+            
+            // Находим максимальный ID среди маркеров
+            const maxId = task.markers.length > 0 ? Math.max(...task.markers.map(m => m.id)) : 0;
+            const newMarkerId = maxId + 1;
+            
+            // Добавляем новый маркер
+            task.markers.push({
+                id: newMarkerId,
+                text: "Новый шаг",
+                completed: false
+            });
+            
+            // Отрисовываем обновленный список
+            renderMarkersList(task.markers);
+            
+            // Фокус на новом поле ввода
+            setTimeout(() => {
+                const newInput = document.querySelector(`.marker-item-input[data-marker-id="${newMarkerId}"]`);
+                if (newInput) {
+                    newInput.focus();
+                    newInput.select();
+                }
+            }, 100);
         }
 
         // Сохранение задачи после редактирования
@@ -376,6 +585,23 @@
                 
                 // Показываем уведомление
                 showNotification('Задача успешно обновлена!');
+            }
+        }
+
+        // Сохранение маркеров
+        function saveMarkers() {
+            const task = tasks.find(t => t.id === currentEditingTaskId);
+            
+            if (task) {
+                // Закрываем модальное окно
+                document.getElementById('edit-markers-modal').classList.remove('active');
+                
+                // Обновляем отображение
+                renderTasks();
+                updateStats();
+                
+                // Показываем уведомление
+                showNotification('Шаги задачи обновлены!');
             }
         }
 
