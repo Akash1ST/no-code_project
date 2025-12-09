@@ -1,0 +1,722 @@
+<!DOCTYPE html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+    />
+    <title>NO-CODE</title>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <link rel="stylesheet" href="main.css" />
+  </head>
+  <body>
+    <div class="container">
+      <header>
+        <h1>Задачи</h1>
+        <p class="subtitle">Управляйте выполнением задач с помощью маркеров</p>
+      </header>
+
+      <div class="stats">
+        <div class="stat-item">
+          <div class="stat-number" id="total-tasks">0</div>
+          <div class="stat-label">Всего задач</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-number" id="completed-tasks">0</div>
+          <div class="stat-label">Выполнено</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-number" id="progress-percent">0%</div>
+          <div class="stat-label">Прогресс</div>
+        </div>
+      </div>
+
+      <div class="section-title">
+        <i class="fas fa-tasks"></i> Активные задачи
+      </div>
+
+      <div id="tasks-container">
+        <!-- Задачи будут добавляться сюда -->
+      </div>
+
+      <div class="section-title">
+        <i class="fas fa-check-circle"></i> Завершенные задачи
+      </div>
+
+      <div id="completed-tasks-container">
+        <!-- Завершенные задачи будут добавляться сюда -->
+      </div>
+    </div>
+
+    <div class="add-task-btn" id="add-task-btn">
+      <i class="fas fa-plus"></i>
+    </div>
+
+    <!-- Модальное окно для редактирования задачи -->
+    <div class="modal-overlay" id="edit-task-modal">
+      <div class="modal">
+        <div class="modal-header">
+          <h3 class="modal-title">Редактировать задачу</h3>
+          <button class="modal-close" id="close-edit-modal">&times;</button>
+        </div>
+        <div class="modal-body">
+          <form id="edit-task-form">
+            <div class="form-group">
+              <label class="form-label" for="edit-title">Название задачи</label>
+              <input type="text" class="form-input" id="edit-title" required />
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="edit-description">Описание</label>
+              <textarea
+                class="form-textarea"
+                id="edit-description"
+                rows="4"
+              ></textarea>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="edit-category">Категория</label>
+              <select class="form-select" id="edit-category">
+                <option value="СРОЧНО">СРОЧНО</option>
+                <option value="Планова">Планова</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="edit-date">Срок выполнения</label>
+              <input type="date" class="form-input" id="edit-date" required />
+            </div>
+
+            <input type="hidden" id="edit-task-id" />
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" id="cancel-edit">
+            Отмена
+          </button>
+          <button type="button" class="btn btn-primary" id="save-task">
+            Сохранить задачу
+          </button>
+          <button
+            type="button"
+            class="btn btn-secondary"
+            id="manage-markers-btn"
+          >
+            Управлять шагами
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Модальное окно для управления маркерами/шагами -->
+    <div class="modal-overlay" id="edit-markers-modal">
+      <div class="modal">
+        <div class="modal-header">
+          <h3 class="modal-title">Управление шагами задачи</h3>
+          <button class="modal-close" id="close-markers-modal">&times;</button>
+        </div>
+        <div class="modal-body">
+          <h4
+            id="markers-task-title"
+            style="margin-bottom: 15px; color: #4a6fa5"
+          ></h4>
+          <div class="markers-list" id="markers-list-container">
+            <!-- Список маркеров будет добавляться здесь -->
+          </div>
+          <button type="button" class="add-marker-btn" id="add-marker-btn">
+            <i class="fas fa-plus"></i> Добавить шаг
+          </button>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" id="cancel-markers">
+            Назад к задаче
+          </button>
+          <button type="button" class="btn btn-primary" id="save-markers">
+            Сохранить шаги
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // Данные задач
+      let tasks = [
+        {
+          id: 1,
+          title: "Ремонт конвейра",
+          description: "Проверить систему конверов разлива-сборки тары",
+          category: "СРОЧНО",
+          markers: [
+            { id: 1, text: "Проверка соединений", completed: true },
+            { id: 2, text: "Снятия оснастки", completed: true },
+            { id: 3, text: "Добавление рекоструриования", completed: true },
+            { id: 4, text: "Перепрограмирование", completed: false },
+            { id: 5, text: "Тестирование", completed: false },
+            { id: 6, text: "Заполнение документации", completed: false },
+          ],
+          date: "2023-10-15",
+          completed: false,
+        },
+        {
+          id: 2,
+          title: "Контрольная закупка",
+          description: "Проверить наличие товара",
+          category: "Планова",
+          markers: [
+            { id: 1, text: "Составить список", completed: true },
+            { id: 2, text: "Купить овощи", completed: true },
+            { id: 3, text: "Купить молочные продукты", completed: false },
+            { id: 4, text: "Купить мясо и рыбу", completed: false },
+          ],
+          date: "2023-10-12",
+          completed: false,
+        },
+        {
+          id: 3,
+          title: "Планирование отпуска",
+          description: "Спланировать поездку на море на следующий месяц",
+          category: "Личное",
+          markers: [
+            { id: 1, text: "Выбрать даты", completed: true },
+            { id: 2, text: "Забронировать отель", completed: true },
+            { id: 3, text: "Купить билеты", completed: true },
+            { id: 4, text: "Составить маршрут", completed: true },
+          ],
+          date: "2023-10-05",
+          completed: true,
+        },
+      ];
+
+      // Текущая редактируемая задача
+      let currentEditingTaskId = null;
+      let markersBackup = [];
+
+      // Инициализация при загрузке страницы
+        document.addEventListener('DOMContentLoaded', function() {
+            renderTasks();
+            updateStats();
+            
+            // Обработчик кнопки добавления задачи
+            document.getElementById('add-task-btn').addEventListener('click', addNewTask);
+            
+            // Обработчики модального окна редактирования задачи
+            const editModal = document.getElementById('edit-task-modal');
+            const closeEditModalBtn = document.getElementById('close-edit-modal');
+            const cancelEditBtn = document.getElementById('cancel-edit');
+            const saveTaskBtn = document.getElementById('save-task');
+            const manageMarkersBtn = document.getElementById('manage-markers-btn');
+            
+            // Обработчики модального окна управления маркерами
+            const markersModal = document.getElementById('edit-markers-modal');
+            const closeMarkersModalBtn = document.getElementById('close-markers-modal');
+            const cancelMarkersBtn = document.getElementById('cancel-markers');
+            const saveMarkersBtn = document.getElementById('save-markers');
+            const addMarkerBtn = document.getElementById('add-marker-btn');
+            
+            // Закрытие модальных окон
+            closeEditModalBtn.addEventListener('click', () => {
+                editModal.classList.remove('active');
+            });
+            
+            cancelEditBtn.addEventListener('click', () => {
+                editModal.classList.remove('active');
+            });
+            
+            closeMarkersModalBtn.addEventListener('click', () => {
+                markersModal.classList.remove('active');
+            });
+            
+            cancelMarkersBtn.addEventListener('click', () => {
+                markersModal.classList.remove('active');
+                editModal.classList.add('active');
+            });
+            
+            // Клик вне модального окна для закрытия
+            editModal.addEventListener('click', (e) => {
+                if (e.target === editModal) {
+                    editModal.classList.remove('active');
+                }
+            });
+            
+            markersModal.addEventListener('click', (e) => {
+                if (e.target === markersModal) {
+                    markersModal.classList.remove('active');
+                    editModal.classList.add('active');
+                }
+            });
+            
+            // Кнопка управления маркерами
+            manageMarkersBtn.addEventListener('click', () => {
+                editModal.classList.remove('active');
+                openMarkersModal(currentEditingTaskId);
+            });
+            
+            // Сохранение задачи
+            saveTaskBtn.addEventListener('click', saveTask);
+            
+            // Сохранение маркеров
+            saveMarkersBtn.addEventListener('click', saveMarkers);
+            
+            // Добавление нового маркера
+            addMarkerBtn.addEventListener('click', addNewMarker);
+        });
+
+        // Функция для отрисовки задач
+        function renderTasks() {
+            const tasksContainer = document.getElementById('tasks-container');
+            const completedContainer = document.getElementById('completed-tasks-container');
+            
+            // Очищаем контейнеры
+            tasksContainer.innerHTML = '';
+            completedContainer.innerHTML = '';
+            
+            // Разделяем задачи на активные и завершенные
+            const activeTasks = tasks.filter(task => !task.completed);
+            const completedTasks = tasks.filter(task => task.completed);
+            
+            // Отображаем активные задачи
+            if (activeTasks.length > 0) {
+                activeTasks.forEach(task => {
+                    tasksContainer.appendChild(createTaskElement(task));
+                });
+            } else {
+                tasksContainer.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-clipboard-list"></i>
+                        <p>Нет активных задач. Добавьте новую!</p>
+                    </div>
+                `;
+            }
+            
+            // Отображаем завершенные задачи
+            if (completedTasks.length > 0) {
+                completedTasks.forEach(task => {
+                    completedContainer.appendChild(createTaskElement(task));
+                });
+            } else {
+                completedContainer.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-check-circle"></i>
+                        <p>Нет завершенных задач</p>
+                    </div>
+                `;
+            }
+        }
+
+        // Создание элемента задачи
+        function createTaskElement(task) {
+            const taskElement = document.createElement('div');
+            taskElement.className = 'task-block';
+            taskElement.dataset.id = task.id;
+            
+            // Расчет прогресса
+            const completedMarkers = task.markers.filter(marker => marker.completed).length;
+            const totalMarkers = task.markers.length;
+            const progressPercent = totalMarkers > 0 ? Math.round((completedMarkers / totalMarkers) * 100) : 0;
+            
+            // Определение цвета прогресс-бара
+            let progressBarClass = 'low-progress';
+            if (progressPercent >= 100) {
+                progressBarClass = 'complete-progress';
+            } else if (progressPercent >= 70) {
+                progressBarClass = 'high-progress';
+            } else if (progressPercent >= 40) {
+                progressBarClass = 'medium-progress';
+            }
+            
+            // Форматирование даты
+            const formattedDate = new Date(task.date).toLocaleDateString('ru-RU', {
+                day: 'numeric',
+                month: 'long'
+            });
+            
+            taskElement.innerHTML = `
+                <div class="task-header">
+                    <div class="task-title">${escapeHtml(task.title)}</div>
+                    <div class="task-category">${escapeHtml(task.category)}</div>
+                </div>
+                <div class="task-description">${escapeHtml(task.description)}</div>
+                <div class="task-date">Срок: ${formattedDate}</div>
+                <div class="task-progress">
+                    <div class="progress-bar">
+                        <div class="progress-fill ${progressBarClass}" style="width: ${progressPercent}%"></div>
+                    </div>
+                    <div class="progress-text">${progressPercent}%</div>
+                </div>
+                <div class="task-markers" id="markers-${task.id}">
+                    ${task.markers.map(marker => `
+                        <div class="marker ${marker.completed ? 'complete' : 'incomplete'}" 
+                             data-marker-id="${marker.id}" 
+                             data-task-id="${task.id}">
+                            <span class="marker-icon">
+                                ${marker.completed ? '<i class="fas fa-check-circle"></i>' : '<i class="far fa-circle"></i>'}
+                            </span>
+                            <span class="marker-text">${escapeHtml(marker.text)}</span>
+                            <button class="marker-edit-btn" onclick="event.stopPropagation(); editMarker(${task.id}, ${marker.id})">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                        </div>
+                    `).join('')}
+                </div>
+                <div class="task-actions">
+                    <div class="action-btn edit-btn" onclick="editTask(${task.id})">
+                        <i class="fas fa-edit"></i>
+                        <span>Редактировать</span>
+                    </div>
+                    <div class="action-btn markers-btn" onclick="openMarkersModal(${task.id})">
+                        <i class="fas fa-list-check"></i>
+                        <span>Шаги</span>
+                    </div>
+                    <div class="action-btn complete-btn" onclick="toggleTaskComplete(${task.id})">
+                        <i class="fas ${task.completed ? 'fa-undo' : 'fa-check'}"></i>
+                        <span>${task.completed ? 'Вернуть' : 'Завершить'}</span>
+                    </div>
+                    <div class="action-btn delete-btn" onclick="deleteTask(${task.id})">
+                        <i class="fas fa-trash"></i>
+                        <span>Удалить</span>
+                    </div>
+                </div>
+            `;
+            
+            // Добавляем обработчики для маркеров
+            const markers = taskElement.querySelectorAll('.marker');
+            markers.forEach(marker => {
+                marker.addEventListener('click', function(e) {
+                    // Игнорируем клик по кнопке редактирования
+                    if (!e.target.closest('.marker-edit-btn')) {
+                        const taskId = parseInt(this.dataset.taskId);
+                        const markerId = parseInt(this.dataset.markerId);
+                        toggleMarker(taskId, markerId);
+                    }
+                });
+            });
+            
+            return taskElement;
+        }
+
+        // Экранирование HTML для безопасности
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // Переключение состояния маркера
+        function toggleMarker(taskId, markerId) {
+            const task = tasks.find(t => t.id === taskId);
+            if (!task) return;
+            
+            const marker = task.markers.find(m => m.id === markerId);
+            if (marker) {
+                marker.completed = !marker.completed;
+                renderTasks();
+                updateStats();
+            }
+        }
+
+        // Редактирование задачи
+        function editTask(taskId) {
+            const task = tasks.find(t => t.id === taskId);
+            if (!task) return;
+            
+            currentEditingTaskId = taskId;
+            
+            // Заполняем форму данными задачи
+            document.getElementById('edit-title').value = task.title;
+            document.getElementById('edit-description').value = task.description;
+            document.getElementById('edit-category').value = task.category;
+            document.getElementById('edit-date').value = task.date;
+            document.getElementById('edit-task-id').value = taskId;
+            
+            // Открываем модальное окно
+            const editModal = document.getElementById('edit-task-modal');
+            editModal.classList.add('active');
+            
+            // Фокус на поле названия
+            setTimeout(() => {
+                document.getElementById('edit-title').focus();
+            }, 300);
+        }
+
+        // Открытие модального окна для управления маркерами
+        function openMarkersModal(taskId) {
+            const task = tasks.find(t => t.id === taskId);
+            if (!task) return;
+            
+            currentEditingTaskId = taskId;
+            
+            // Сохраняем текущие маркеры для возможного отката
+            markersBackup = JSON.parse(JSON.stringify(task.markers));
+            
+            // Устанавливаем заголовок
+            document.getElementById('markers-task-title').textContent = `Шаги задачи: "${task.title}"`;
+            
+            // Отрисовываем список маркеров
+            renderMarkersList(task.markers);
+            
+            // Открываем модальное окно
+            const markersModal = document.getElementById('edit-markers-modal');
+            markersModal.classList.add('active');
+        }
+
+        // Отрисовка списка маркеров в модальном окне
+        function renderMarkersList(markers) {
+            const container = document.getElementById('markers-list-container');
+            container.innerHTML = '';
+            
+            if (markers.length === 0) {
+                container.innerHTML = '<p style="text-align: center; color: #888; padding: 20px;">Нет шагов. Добавьте первый шаг!</p>';
+                return;
+            }
+            
+            markers.forEach((marker, index) => {
+                const markerItem = document.createElement('div');
+                markerItem.className = 'marker-item';
+                markerItem.dataset.markerId = marker.id;
+                
+                markerItem.innerHTML = `
+                    <input type="text" class="marker-item-input" value="${escapeHtml(marker.text)}" 
+                           data-marker-id="${marker.id}" placeholder="Текст шага">
+                    <div class="marker-item-actions">
+                        <button class="marker-action-btn marker-check-btn" title="Отметить выполненным" onclick="toggleMarkerInModal(${marker.id})">
+                            <i class="fas ${marker.completed ? 'fa-check-circle' : 'far fa-circle'}"></i>
+                        </button>
+                        <button class="marker-action-btn marker-remove-btn" title="Удалить шаг" onclick="removeMarker(${marker.id})">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                `;
+                
+                // Обработчик изменения текста маркера
+                const input = markerItem.querySelector('.marker-item-input');
+                input.addEventListener('input', function() {
+                    const markerId = parseInt(this.dataset.markerId);
+                    updateMarkerText(markerId, this.value);
+                });
+                
+                container.appendChild(markerItem);
+            });
+        }
+
+        // Обновление текста маркера
+        function updateMarkerText(markerId, newText) {
+            const task = tasks.find(t => t.id === currentEditingTaskId);
+            if (!task) return;
+            
+            const marker = task.markers.find(m => m.id === markerId);
+            if (marker) {
+                marker.text = newText.trim();
+            }
+        }
+
+        // Переключение состояния маркера в модальном окне
+        function toggleMarkerInModal(markerId) {
+            const task = tasks.find(t => t.id === currentEditingTaskId);
+            if (!task) return;
+            
+            const marker = task.markers.find(m => m.id === markerId);
+            if (marker) {
+                marker.completed = !marker.completed;
+                renderMarkersList(task.markers);
+            }
+        }
+
+        // Удаление маркера
+        function removeMarker(markerId) {
+            const task = tasks.find(t => t.id === currentEditingTaskId);
+            if (!task) return;
+            
+            task.markers = task.markers.filter(m => m.id !== markerId);
+            renderMarkersList(task.markers);
+        }
+
+        // Добавление нового маркера
+        function addNewMarker() {
+            const task = tasks.find(t => t.id === currentEditingTaskId);
+            if (!task) return;
+            
+            // Находим максимальный ID среди маркеров
+            const maxId = task.markers.length > 0 ? Math.max(...task.markers.map(m => m.id)) : 0;
+            const newMarkerId = maxId + 1;
+            
+            // Добавляем новый маркер
+            task.markers.push({
+                id: newMarkerId,
+                text: "Новый шаг",
+                completed: false
+            });
+            
+            // Отрисовываем обновленный список
+            renderMarkersList(task.markers);
+            
+            // Фокус на новом поле ввода
+            setTimeout(() => {
+                const newInput = document.querySelector(`.marker-item-input[data-marker-id="${newMarkerId}"]`);
+                if (newInput) {
+                    newInput.focus();
+                    newInput.select();
+                }
+            }, 100);
+        }
+
+        // Сохранение задачи после редактирования
+        function saveTask() {
+            const taskId = parseInt(document.getElementById('edit-task-id').value);
+            const task = tasks.find(t => t.id === taskId);
+            
+            if (task) {
+                // Обновляем данные задачи
+                task.title = document.getElementById('edit-title').value.trim();
+                task.description = document.getElementById('edit-description').value.trim();
+                task.category = document.getElementById('edit-category').value;
+                task.date = document.getElementById('edit-date').value;
+                
+                // Закрываем модальное окно
+                document.getElementById('edit-task-modal').classList.remove('active');
+                
+                // Обновляем отображение
+                renderTasks();
+                updateStats();
+                
+                // Показываем уведомление
+                showNotification('Задача успешно обновлена!');
+            }
+        }
+
+        // Сохранение маркеров
+        function saveMarkers() {
+            const task = tasks.find(t => t.id === currentEditingTaskId);
+            
+            if (task) {
+                // Закрываем модальное окно
+                document.getElementById('edit-markers-modal').classList.remove('active');
+                
+                // Обновляем отображение
+                renderTasks();
+                updateStats();
+                
+                // Показываем уведомление
+                showNotification('Шаги задачи обновлены!');
+            }
+        }
+
+        // Переключение состояния задачи (выполнена/не выполнена)
+        function toggleTaskComplete(taskId) {
+            const task = tasks.find(t => t.id === taskId);
+            if (task) {
+                task.completed = !task.completed;
+                renderTasks();
+                updateStats();
+                
+                const message = task.completed ? 'Задача завершена!' : 'Задача возвращена в активные';
+                showNotification(message);
+            }
+        }
+
+        // Удаление задачи
+        function deleteTask(taskId) {
+            if (confirm('Вы уверены, что хотите удалить эту задачу?')) {
+                tasks = tasks.filter(t => t.id !== taskId);
+                renderTasks();
+                updateStats();
+                showNotification('Задача удалена');
+            }
+        }
+
+        // Обновление статистики
+        function updateStats() {
+            const totalTasks = tasks.length;
+            const completedTasks = tasks.filter(task => task.completed).length;
+            const totalMarkers = tasks.reduce((sum, task) => sum + task.markers.length, 0);
+            const completedMarkers = tasks.reduce((sum, task) => {
+                return sum + task.markers.filter(marker => marker.completed).length;
+            }, 0);
+            
+            const progressPercent = totalMarkers > 0 ? Math.round((completedMarkers / totalMarkers) * 100) : 0;
+            
+            document.getElementById('total-tasks').textContent = totalTasks;
+            document.getElementById('completed-tasks').textContent = completedTasks;
+            document.getElementById('progress-percent').textContent = `${progressPercent}%`;
+        }
+
+        // Добавление новой задачи
+        function addNewTask() {
+            const newTaskId = tasks.length > 0 ? Math.max(...tasks.map(t => t.id)) + 1 : 1;
+            const today = new Date();
+            const nextWeek = new Date(today);
+            nextWeek.setDate(today.getDate() + 7);
+            
+            const newTask = {
+                id: newTaskId,
+                title: "Новая задача",
+                description: "Опишите, что нужно сделать...",
+                category: "Личное",
+                markers: [
+                    { id: 1, text: "Первый шаг", completed: false },
+                    { id: 2, text: "Второй шаг", completed: false }
+                ],
+                date: nextWeek.toISOString().split('T')[0],
+                completed: false
+            };
+            
+            tasks.unshift(newTask);
+            renderTasks();
+            updateStats();
+            
+            // Открываем модальное окно для редактирования новой задачи
+            setTimeout(() => {
+                editTask(newTaskId);
+            }, 300);
+        }
+
+        // Временное уведомление
+        function showNotification(message) {
+            // Удаляем предыдущее уведомление, если есть
+            const existingNotification = document.querySelector('.notification');
+            if (existingNotification) {
+                existingNotification.remove();
+            }
+            
+            // Создаем новое уведомление
+            const notification = document.createElement('div');
+            notification.className = 'notification';
+            notification.textContent = message;
+            notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                left: 50%;
+                transform: translateX(-50%);
+                background-color: #4a6fa5;
+                color: white;
+                padding: 12px 20px;
+                border-radius: 8px;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+                z-index: 1001;
+                font-weight: 500;
+                transition: opacity 0.3s;
+                opacity: 0;
+            `;
+            
+            document.body.appendChild(notification);
+            
+            // Показываем уведомление
+            setTimeout(() => {
+                notification.style.opacity = '1';
+            }, 10);
+            
+            // Скрываем через 3 секунды
+            setTimeout(() => {
+                notification.style.opacity = '0';
+                setTimeout(() => {
+                    notification.remove();
+                }, 300);
+            }, 3000);
+        }
+    </script>
+  </body>
+</html>
