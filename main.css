@@ -643,3 +643,195 @@ h1 {
     width: 100%;
   }
 }
+
+/* Drag and Drop стили */
+.drag-drop-container {
+    min-height: 100px;
+    transition: background-color 0.3s;
+}
+
+.drag-drop-container.drag-over {
+    background-color: rgba(74, 111, 165, 0.1);
+    border-radius: 15px;
+    border: 2px dashed #4a6fa5;
+}
+
+.draggable {
+    cursor: grab;
+    transition: transform 0.2s, box-shadow 0.2s;
+    position: relative;
+}
+
+.draggable.dragging {
+    cursor: grabbing;
+    transform: rotate(3deg);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+    z-index: 10;
+}
+
+.drag-handle {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    color: #ccc;
+    font-size: 18px;
+    cursor: grab;
+    padding: 5px;
+    border-radius: 4px;
+    transition: color 0.2s, background-color 0.2s;
+}
+
+.draggable:hover .drag-handle {
+    color: #888;
+    background-color: rgba(0, 0, 0, 0.05);
+}
+
+.drag-drop-placeholder {
+    border: 2px dashed #ddd;
+    border-radius: 15px;
+    margin-bottom: 15px;
+}
+
+.placeholder-hint {
+    font-size: 12px;
+    color: #aaa;
+    margin-top: 5px;
+}
+
+.drag-hint {
+    font-size: 12px;
+    color: #888;
+    font-weight: normal;
+    margin-left: 10px;
+}
+
+/* Стили для отделов */
+.departments-section {
+    margin-bottom: 20px;
+}
+
+.departments-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.department-item {
+    display: flex;
+    align-items: center;
+    padding: 8px 15px;
+    background-color: white;
+    border-radius: 20px;
+    border: 2px solid #4a6fa5;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    user-select: none;
+}
+
+.department-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.department-color {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    margin-right: 8px;
+}
+
+.department-name {
+    font-size: 14px;
+    font-weight: 500;
+    color: #333;
+    margin-right: 8px;
+}
+
+.department-count {
+    background-color: #f0f0f0;
+    color: #666;
+    font-size: 12px;
+    font-weight: bold;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Стили для отдела в задаче */
+.task-department {
+    padding: 5px 10px;
+    border-radius: 4px;
+    font-size: 14px;
+    margin: 10px 0;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* Стили для модального окна добавления отдела */
+.modal-sm {
+    max-width: 400px;
+}
+
+.form-input-color {
+    width: 60px;
+    height: 40px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+.color-picker {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.add-department-btn {
+    width: 100%;
+    padding: 10px;
+    background-color: #f5f7fa;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    color: #666;
+    font-size: 14px;
+    cursor: pointer;
+    margin-top: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: all 0.2s;
+}
+
+.add-department-btn:hover {
+    border-color: #4a6fa5;
+    color: #4a6fa5;
+    background-color: #eef2f9;
+}
+
+/* Статистика для отделов */
+.stat-item:last-child .stat-number {
+    color: #a56f4a;
+}
+
+/* Адаптивность для отделов */
+@media (max-width: 480px) {
+    .departments-container {
+        justify-content: center;
+    }
+    
+    .department-item {
+        padding: 6px 12px;
+    }
+    
+    .drag-hint {
+        display: block;
+        margin-left: 0;
+        margin-top: 5px;
+    }
+}
