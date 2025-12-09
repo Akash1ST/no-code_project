@@ -13,8 +13,7 @@
   <div class="container">
     <header>
       <h1>Задачи</h1>
-      <p class="subtitle">Управляйте выполнением задач с помощью маркеров.
-        Перетаскивайте задачи между секциями</p>
+      <p class="subtitle">Управляйте выполнением задач с помощью маркеров. Перетаскивайте задачи между секциями</p>
     </header>
 
     <div class="stats">
@@ -30,37 +29,38 @@
         <div class="stat-number" id="progress-percent">0%</div>
         <div class="stat-label">Прогресс</div>
       </div>
+      <div class="stat-item">
+        <div class="stat-number" id="department-count">0</div>
+        <div class="stat-label">Отделов</div>
+      </div>
     </div>
-    <div class="stat-item">
-      <div class="stat-number" id="department-count">0</div>
-      <div class="stat-label">Отделов</div>
-    </div>
-  </div>
 
-  <div class="departments-section">
+    <div class="departments-section">
+      <div class="section-title">
+        <i class="fas fa-building"></i> Отделы
+      </div>
+      <div class="departments-container" id="departments-container">
+        <!-- Отделы будут добавлены динамически -->
+      </div>
+    </div>
+
     <div class="section-title">
-      <i class="fas fa-building"></i> Отделы
+      <i class="fas fa-tasks"></i> Активные задачи
+      <span class="drag-hint">(перетащите для изменения статуса)</span>
     </div>
-    <div class="departments-container" id="departments-container">
-      <!-- Отделы будут добавлены динамически -->
+
+    <div id="tasks-container" class="drag-drop-container">
+      <!-- Задачи будут добавляться сюда -->
     </div>
-  </div>
 
-  <div class="section-title">
-    <i class="fas fa-tasks"></i> Активные задачи
-  </div>
+    <div class="section-title">
+      <i class="fas fa-check-circle"></i> Завершенные задачи
+      <span class="drag-hint">(перетащите для изменения статуса)</span>
+    </div>
 
-  <div id="tasks-container">
-    <!-- Задачи будут добавляться сюда -->
-  </div>
-
-  <div class="section-title">
-    <i class="fas fa-check-circle"></i> Завершенные задачи
-  </div>
-
-  <div id="completed-tasks-container">
-    <!-- Завершенные задачи будут добавляться сюда -->
-  </div>
+    <div id="completed-tasks-container" class="drag-drop-container">
+      <!-- Завершенные задачи будут добавляться сюда -->
+    </div>
   </div>
 
   <div class="add-task-btn" id="add-task-btn">
@@ -87,10 +87,22 @@
           </div>
 
           <div class="form-group">
+            <label class="form-label" for="edit-department">Отдел</label>
+            <select class="form-select" id="edit-department">
+              <option value="Все отделы">Все отделы</option>
+              <!-- Отделы будут добавлены динамически -->
+            </select>
+            <button type="button" class="add-department-btn" id="add-department-btn">
+              <i class="fas fa-plus"></i> Добавить отдел
+            </button>
+          </div>
+
+          <div class="form-group">
             <label class="form-label" for="edit-category">Категория</label>
             <select class="form-select" id="edit-category">
               <option value="СРОЧНО">СРОЧНО</option>
               <option value="Планова">Планова</option>
+              <option value="Личное">Личное</option>
             </select>
           </div>
 
@@ -183,22 +195,25 @@
         title: "Ремонт конвейра",
         description: "Проверить систему конверов разлива-сборки тары",
         category: "СРОЧНО",
+        department: "Производство",
         markers: [
           { id: 1, text: "Проверка соединений", completed: true },
           { id: 2, text: "Снятия оснастки", completed: true },
-          { id: 3, text: "Добавление рекоструриования", completed: true },
+          { id: 3, text: "Добавление рекоструирования", completed: true },
           { id: 4, text: "Перепрограмирование", completed: false },
           { id: 5, text: "Тестирование", completed: false },
           { id: 6, text: "Заполнение документации", completed: false },
         ],
         date: "2023-10-15",
         completed: false,
+        order: 1
       },
       {
         id: 2,
         title: "Контрольная закупка",
         description: "Проверить наличие товара",
         category: "Планова",
+        department: "Закупки",
         markers: [
           { id: 1, text: "Составить список", completed: true },
           { id: 2, text: "Купить овощи", completed: true },
@@ -207,12 +222,14 @@
         ],
         date: "2023-10-12",
         completed: false,
+        order: 2
       },
       {
         id: 3,
         title: "Планирование отпуска",
         description: "Спланировать поездку на море на следующий месяц",
         category: "Личное",
+        department: "Все отделы",
         markers: [
           { id: 1, text: "Выбрать даты", completed: true },
           { id: 2, text: "Забронировать отель", completed: true },
@@ -221,6 +238,7 @@
         ],
         date: "2023-10-05",
         completed: true,
+        order: 1
       },
     ];
 

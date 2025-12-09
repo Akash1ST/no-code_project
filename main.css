@@ -819,19 +819,3 @@ h1 {
     color: #a56f4a;
 }
 
-/* Адаптивность для отделов */
-@media (max-width: 480px) {
-    .departments-container {
-        justify-content: center;
-    }
-    
-    .department-item {
-        padding: 6px 12px;
-    }
-    
-    .drag-hint {
-        display: block;
-        margin-left: 0;
-        margin-top: 5px;
-    }
-}
